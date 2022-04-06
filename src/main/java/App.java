@@ -5,6 +5,9 @@ public class App {
         //API: secure(keystoreFilePath, keystorePassword, truststoreFilePath, truststorePassword);
         //secure(getKeyStore(), "123456", null, null);
         port(getPort());
+
+        staticFileLocation("/");
+
         options("/*", (request, response) -> {
             String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
             if (accessControlRequestHeaders != null) {
@@ -23,14 +26,15 @@ public class App {
 
         get("/", (req, res) -> {
             System.out.println("entro /");
-            //res.redirect("/login.html");
-            //res.status(200);
-            return null;
+            res.redirect("/login.html");
+            res.status(200);
+            return "Hello";
         });
 
         post("/login", (req, res) -> {
+            res.type("application/json");
             System.out.println("Esta entrando /login");
-            return "entro";
+            return "asdasd";
         });
 
         get("/hello", (req, res) -> "Hello World");
