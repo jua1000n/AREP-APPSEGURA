@@ -1,8 +1,9 @@
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import model.User;
 
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import static spark.Spark.*;
@@ -13,10 +14,15 @@ public class App {
 
     public static void main(String[] args) {
         //API: secure(keystoreFilePath, keystorePassword, truststoreFilePath, truststorePassword);
-        //secure(getKeyStore(), "123456", null, null);
+        secure(getKeyStore(), "123456", null, null);
         port(getPort());
+        try {
+            SecureURLReader.secureURL();
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        }
         listLogin.put("frailejon", "b514d54458eddda4dd3d2e88eef7ef95f5b68245dd861de7d487ce974a152f3d");
-        listLogin.put("juan", "8616a7c06288f4a48fd2504aeacba5160906e3ba1ccea699515290e7d40d92c1");
+        listLogin.put("juan", "8616a7c06288f4a48fd2504aeacba5160906e3ba1ccea699515290e7d40d92c1");//cadavid
 
         staticFileLocation("/");
 
@@ -46,9 +52,7 @@ public class App {
         post("/login", (req, res) -> {
             res.type("application/json");
             User user = (new Gson()).fromJson(req.body(), User.class);
-            System.out.println(user.getName()+" "+user.getPassword());
-            System.out.println(validateLogin(user));
-            return "asdasd";
+            return validateLogin(user);
         });
 
         get("/hello", (req, res) -> "Hello World");
@@ -68,14 +72,22 @@ public class App {
         return "keystores/ecikeystore.p12";
     }
 
-    private static Boolean validateLogin(User user) throws NoSuchAlgorithmException {
+    private static JsonObject validateLogin(User user) throws NoSuchAlgorithmException {
         String r1 = HashSha.toHexString(HashSha.getSHA(user.getPassword()));
         String r2 = listLogin.get(user.getName());
-
+        JsonObject res = new JsonObject();
         if (r1.equals(r2)) {
-            System.out.println("2");
-            return true;
+            res.addProperty("status",202);
+            res.addProperty("result", "OK");
+            res.addProperty("server", "Se logeo de manera correcta");
+            System.out.println(res.toString());
+            return res;
         }
-        return false;
+
+        res.addProperty("status",406);
+        res.addProperty("result", "Not Acceptable");
+        res.addProperty("server", "El usuario o la password es incorrecta");
+        System.out.println(res.toString());
+        return res;
     }
 }
